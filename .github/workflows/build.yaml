@@ -17,7 +17,9 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Initialize pgrx
-        run: cargo pgrx init
+        run: |
+          cargo install --locked cargo-pgrx
+          cargo pgrx init
 
       - name: Run tests
         run: cargo pgrx test --verbose
