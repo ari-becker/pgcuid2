@@ -11,7 +11,21 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          - ubuntu-22.04
+          - ubuntu-20.04
+          - macos-13
+          - macos-12
+          - macos-11
+        postgresql_version:
+          - 11
+          - 12
+          - 13
+          - 14
+          - 15
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -24,5 +38,37 @@ jobs:
       - name: Run tests
         run: cargo pgrx test --verbose
 
+      - name: Install PostgreSQL (Ubuntu)
+        if: startsWith(matrix.os, "ubuntu-")
+        id: install-postgresql-ubuntu
+        env:
+          TZ: UTC
+        run: |
+          sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+          sudo apt-get update
+          sudo apt-get -y install postgresql-${{ matrix.postgresql_version }}
+          echo "pg_config_path=/usr/lib/postgresql/${{ matrix.postgresql_version }}/bin/pgconfig" >> $GITHUB_OUTPUT
+
+      - name: Install PostgreSQL (Mac)
+        if: startsWith(matrix.os, "macos-")
+        id: install-postgresql-mac
+        run: |
+          brew install postgresql@${{ matrix.postgresql_version }}
+          echo "pg_config_path=$(find /opt/homebrew/Cellar/postgresql@${{ matrix.postgresql_version }} -name pg_config)" >> $GITHUB_OUTPUT
+
       - name: Package
-        run: cargo pgrx package
+        id: package
+        env:
+          PATH_TO_PG_CONFIG: ${{ join([steps.install-postgresql-ubuntu.outputs.pg_config_path, steps.install-postgresql-mac.outputs.pg_config_path], "") }}
+        run: |
+          cargo pgrx package -c $PATH_TO_PG_CONFIG --no-default-features
+          tarball="pgcuid2-pg${{ matrix.postgresql_version }}-${{ matrix.os }}.tgz"
+          tar -C ./target/release/pgcuid2-pg${{ matrix.postgresql_version }} -czvf pgcuid2-pg${{ matrix.postgresql_version }}-${{ matrix.os }}.tgz .
+          echo "tarball=$tarball" >> $GITHUB_OUTPUT
+
+      - name: Upload tarball
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.os }}-${{ matrix.postgresql_version }}
+          path: ${{ steps.package.outputs.tarball }}
