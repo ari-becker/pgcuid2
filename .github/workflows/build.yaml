@@ -39,7 +39,7 @@ jobs:
         run: cargo pgrx test --verbose
 
       - name: Install PostgreSQL (Ubuntu)
-        if: startsWith(matrix.os, "ubuntu-")
+        if: startsWith(matrix.os, 'ubuntu-')
         id: install-postgresql-ubuntu
         env:
           TZ: UTC
@@ -51,7 +51,7 @@ jobs:
           echo "pg_config_path=/usr/lib/postgresql/${{ matrix.postgresql_version }}/bin/pgconfig" >> $GITHUB_OUTPUT
 
       - name: Install PostgreSQL (Mac)
-        if: startsWith(matrix.os, "macos-")
+        if: startsWith(matrix.os, 'macos-')
         id: install-postgresql-mac
         run: |
           brew install postgresql@${{ matrix.postgresql_version }}
@@ -60,7 +60,7 @@ jobs:
       - name: Package
         id: package
         env:
-          PATH_TO_PG_CONFIG: ${{ join([steps.install-postgresql-ubuntu.outputs.pg_config_path, steps.install-postgresql-mac.outputs.pg_config_path], "") }}
+          PATH_TO_PG_CONFIG: ${{ steps.install-postgresql-ubuntu.outputs.pg_config_path || steps.install-postgresql-mac.outputs.pg_config_path }}
         run: |
           cargo pgrx package -c $PATH_TO_PG_CONFIG --no-default-features
           tarball="pgcuid2-pg${{ matrix.postgresql_version }}-${{ matrix.os }}.tgz"
