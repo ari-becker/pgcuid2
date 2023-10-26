@@ -27,4 +27,9 @@ and running `SELECT * from foo;` will return something like
 ```
 
 ## Appreciation
-This would not be possible without [`pgrx`](https://github.com/pgcentralfoundation/pgrx), which made it so easy. Thank you!
+This would not be possible without:
+
+* Eric Elliot's work on [`cuid2`](https://github.com/paralleldrive/cuid2).
+* [`pgrx`](https://github.com/pgcentralfoundation/pgrx), which made it so easy.
+
+Thank you!

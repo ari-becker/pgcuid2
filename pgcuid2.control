@@ -1,4 +1,4 @@
-comment = 'pgcuid2:  Created by pgrx'
+comment = 'Get cuid2-generated identifiers'
 default_version = '@CARGO_VERSION@'
 module_pathname = '$libdir/pgcuid2'
 relocatable = false
