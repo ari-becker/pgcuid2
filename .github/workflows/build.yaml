@@ -12,6 +12,7 @@ env:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ubuntu-22.04
@@ -55,7 +56,7 @@ jobs:
         id: install-postgresql-mac
         run: |
           brew install postgresql@${{ matrix.postgresql_version }}
-          echo "pg_config_path=$(find /opt/homebrew/Cellar/postgresql@${{ matrix.postgresql_version }} -name pg_config)" >> $GITHUB_OUTPUT
+          echo "pg_config_path=$(find /usr/local/Cellar/postgresql@${{ matrix.postgresql_version }} -name pg_config)" >> $GITHUB_OUTPUT
 
       - name: Package
         id: package
